@@ -27,7 +27,6 @@ ifeq ($(shell $(CC) -v 2>&1 | grep -c "gcc version"), 1)
 		_CFLAGS += -ggdb
 	endif #debug
 	_CFLAGS += $(WGCC)
-	LTO = -flto -fno-fat-lto-objects
 
 else ifeq ($(shell $(CC) -v 2>&1 | grep -c "clang version"), 1)
 	include clang_chosen.mk
@@ -41,7 +40,6 @@ endif #debug
 
 	_CFLAGS += -Weverything
 	WNOFLAGS += -Wno-disabled-macro-expansion
-	LTO = -flto=thin
 endif #compiler
 
 

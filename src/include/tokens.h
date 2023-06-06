@@ -41,7 +41,7 @@ extern "C" {
 struct type_token_vals {
 	size_t token_location;
 	size_t preparsed_len;
-	char *val;
+	const char *val;
 };
 size_t
 is_there_token(const char *tok);

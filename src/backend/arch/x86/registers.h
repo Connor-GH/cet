@@ -1,5 +1,5 @@
-#ifndef BACKEND_REGISTERS_HPP
-#define BACKEND_REGISTERS_HPP
+#ifndef BACKEND_REGISTERS_H
+#define BACKEND_REGISTERS_H
 
 #ifdef __cplusplus
 #include <cstdint>
@@ -60,4 +60,4 @@ struct x86_64_registers {
 };
 
 /* vector extensions not added */
-#endif /* BACKEND_REGISTERS_HPP */
+#endif /* BACKEND_REGISTERS_H */
