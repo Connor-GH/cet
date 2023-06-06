@@ -1,0 +1,9 @@
+/.vscode/
+/.idea/
+/bin/
+/obj/
+*~
+*.o
+*.bin
+*.bak
+/src-backup/

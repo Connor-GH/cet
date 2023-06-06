@@ -1,0 +1,25 @@
+#include <stdio.h>
+#include <inttypes.h>
+
+/* This entire file will be treated file
+ * it is guarded in a 'begin' and 'end'
+ * header. */
+
+int main(void) {
+u32 a = (u32)273890 + 12;
+f128 b;
+f64 c;
+
+for (u32 i = 0; i < 12; i++) {
+    b = 3.14159265389 * (1.0 * i / (i + 1.0)) * a / 7890;
+}
+c = (f64)b;
+
+printf("%.10lf\n", c);
+return 0;
+}
+
+/* for loop syntax to be used in the future:
+ * for (i32 b : 0..32) {
+ * }
+ */
