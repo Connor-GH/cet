@@ -79,9 +79,7 @@ has_begin_comment(std::string buf, char *file)
 static int
 has_LANGNAME_begin_block(std::string buf, char *file)
 {
-	std::string tmp = "<<";
-	tmp += LANGNAME_STRING;
-	tmp += "_begin>>";
+    std::string tmp = "<<" LANGNAME_STRING "_begin>>";
     if (in_codeblock && (buf.find(tmp) != std::string::npos))
         parsing_err(WARNING, "Duplicate begin block", buf.c_str(),
                 buf.find(tmp), file, line_no);
@@ -97,9 +95,7 @@ has_LANGNAME_begin_block(std::string buf, char *file)
 static int
 has_LANGNAME_end_block(std::string buf, char *file)
 {
-	std::string tmp = "<<";
-	tmp += LANGNAME_STRING;
-	tmp += "_end>>";
+	std::string tmp = "<<" LANGNAME_STRING "_end>>";
     if (!in_codeblock && (buf.find(tmp) != std::string::npos))
         parsing_err(WARNING, "Duplicate end block", buf.c_str(),
                 buf.find(tmp), file, line_no);

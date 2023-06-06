@@ -5,7 +5,6 @@ int
 fun(void)
 {
     <<cet_begin>>
-    <<cet_begin>>
     /* ^^ this header is not needed
      * in every translation unit (function).
      * It is used in this function specifically
@@ -13,6 +12,12 @@ fun(void)
      * parser can choose specific parts of the
      * file to parse, thereby leaving
      * certain portions of the file alone */
+
+    /* This helps to show that this parsing
+     * system does not restrict the user from
+     * making identifiers with the type in
+     * the name. */
+    u32 thisIsAnIdentifierForu32 = 0;
     u32 cb;
 	for (u32 i = 1; i < 32; i++) {
 		cb = 1 + (u64)(u32)i;
@@ -26,6 +31,7 @@ int
 main(void)
 {
 	<<cet_begin>>
+    <<cet_begin>>
 /* ^^ This is the "alternative language" header.
  * This dictates the beginning of the block for
  * the parser to translate code from. There may be
@@ -33,7 +39,11 @@ main(void)
  * with no "end" block in between are considered
  * redundant and only the first is considered (the
  * second just wastes processing time and amounts
- * to a no-op. */
+ * to a no-op; a warning is generated for duplicate
+ * headers, which prevents the raw output from being
+ * redirected into a compiler. Instead, the output
+ * from stdout only must be redirected, as warnings and
+ * errors show up only on stderr. */
 
 /* All expected types are supported, including
  * extended ones such as float128 and integer128 that aren't
