@@ -5,7 +5,7 @@
 
 #include <cstdlib>
 
-#include <registers.h> /* TODO add -Ibackend/arch/$(TARGET_ARCH)/ */
+#include <registers.h>
 #include <common.h>
 
 x86_64_registers amd64;
