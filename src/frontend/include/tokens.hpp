@@ -1,12 +1,6 @@
 #ifndef TOKENS_H
 #define TOKENS_H
-#include <stddef.h>
-#ifdef __cplusplus
 #include <cstddef>
-extern "C" {
-#else
-#include <stddef.h>
-#endif
 #define TOKEN_u8 "u8"
 #define TOKEN_i8 "i8"
 #define TOKEN_u16 "u16"
@@ -41,13 +35,8 @@ extern "C" {
 struct type_token_vals {
 	size_t token_location;
 	size_t preparsed_len;
-	const char *val;
+    /*const char **/ std::string val;
 };
-size_t
-is_there_token(const char *tok);
 struct type_token_vals
-type_token_info(const char *tok);
-#ifdef __cplusplus
-}
-#endif
+type_token_info(std::string tok);
 #endif

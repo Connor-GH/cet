@@ -2,8 +2,9 @@
 /.idea/
 /bin/
 /obj/
+/tests/self-host/bin/
+/tests/self-host/obj/
 *~
 *.o
 *.bin
 *.bak
-/src-backup/

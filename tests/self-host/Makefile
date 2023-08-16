@@ -18,6 +18,11 @@ OBJECTS_C_FRONTEND = $(SOURCES_C_FRONTEND:$(SRCDIR_FRONTEND)/%.c=$(OBJDIR)/%.o)
 SOURCES_CXX_FRONTEND = $(wildcard $(SRCDIR_FRONTEND)/*.cpp)
 OBJECTS_CXX_FRONTEND = $(SOURCES_CXX_FRONTEND:$(SRCDIR_FRONTEND)/%.cpp=$(OBJDIR)/%.o)
 
+### SELF-HOSTING VARIABLES
+CET ?= ../../bin/cet
+
+
+
 TARGET_ARCH ?= x86
 ifeq ($(TARGET_ARCH), x86)
 	MARCH = x86-64
@@ -42,36 +47,40 @@ OBJECTS_CXX = $(OBJECTS_CXX_FRONTEND) $(OBJECTS_CXX_BACKEND)
 IVARS = -I$(SRCDIR)/include -I$(SRCDIR_FRONTEND)/include -I$(SRCDIR_BACKEND)/include
 
 include cc_and_flags.mk
-COMMON_FLAGS = -O2 -pipe $(IVARS) -DLANGNAME_STRING=\"$(LANG_NAME)\"
-the_CFLAGS = $(COMMON_FLAGS) -pedantic $(_CFLAGS)
-the_CXXFLAGS = $(COMMON_FLAGS) -Wno-c++98-compat -fno-rtti $(_CXXFLAGS)
+COMMON_FLAGS = -O2 -pipe $(IVARS) \
+			   -DLANGNAME_STRING=\"$(LANG_NAME)\" -DLANGNAME=$(LANG_NAME)
+the_CFLAGS = -pedantic $(COMMON_FLAGS) $(_CFLAGS)
+the_CXXFLAGS = $(COMMON_FLAGS) -std=$(CXX_STD) -Wno-c++98-compat $(CXXFLAGS)
 the_LFLAGS = $(LDFLAGS) $(IVARS) $(_LFLAGS)
 the_CXX_LFLAGS = $(the_LFLAGS)
 
 .PHONY: all clean remove
 
-all:
-	$(MAKE) remove
-	$(MAKE) $(TARGET)
+all: remove $(TARGET)
 
 
 $(TARGET): $(OBJECTS_C) $(OBJECTS_CXX) | $(BINDIR)
 	$(CXX) -o $(BINDIR)/$@ $(the_CXX_LFLAGS) $^
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.c | $(OBJDIR)
-	$(CC) -o $@ $(the_CFLAGS) $^ -c
+#	$(CC) -o $@ $(the_CFLAGS) $^ -c
+	$(CET) -f $^  | $(CC) -xc - -c -o $@ $(the_CFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR_FRONTEND)/%.c | $(OBJDIR)
-	$(CC) -o $@ $(the_CFLAGS) $^ -c
+#	$(CC) -o $@ $(the_CFLAGS) $^ -c
+	$(CET) -f $^  | $(CC) -xc - -c -o $@ $(the_CFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR_BACKEND)/%.c | $(OBJDIR)
-	$(CC) -o $@ $(the_CFLAGS) $^ -c
+#	$(CC) -o $@ $(the_CFLAGS) $^ -c
+	$(CET) -f $^  | $(CC) -xc - -c -o $@ $(the_CFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR_FRONTEND)/%.cpp | $(OBJDIR)
-	$(CXX) -o $@ $(the_CXXFLAGS) $^ -c
+#	$(CXX) -o $@ $(the_CXXFLAGS) $^ -c
+	$(CET) -f $^  | $(CXX) -xc++ - -c -o $@ $(the_CXXFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR_BACKEND)/%.cpp | $(OBJDIR)
-	$(CXX) -o $@ $(the_CXXFLAGS) $^ -c
+#	$(CXX) -o $@ $(the_CXXFLAGS) $^ -c
+	$(CET) -f $^  | $(CXX) -xc++ - -c -o $@ $(the_CXXFLAGS)
 
 
 $(BINDIR) $(OBJDIR):
@@ -81,5 +90,7 @@ clean:
 	rm -rf $(OBJECTS_C) $(OBJECTS_CXX)
 
 remove: clean
+ifeq (SELFHOST, 1)
 	rm -rf $(BINDIR)/$(TARGET)
+endif
 

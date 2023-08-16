@@ -6,14 +6,13 @@
 #include <cerrno>
 #include <cstring>
 
-//#include "tokens.h"
 #include "tokens.hpp"
 #include "parsing.h"
 #include "parsing_error.h"
 #include "classes.hpp"
 
-static int is_in_comment = 0;
-static int in_codeblock = 0;
+static i32 is_in_comment = 0;
+static i32 in_codeblock = 0;
 static size_t line_no = 0;
 
 
@@ -81,7 +80,7 @@ has_begin_comment(std::string buf, const char *file)
 	return buf.length()+1;
 }
 
-static int
+static i32
 has_LANGNAME_begin_block(std::string buf, const char *file)
 {
 	std::string tmp = "<<" LANGNAME_STRING "_begin>>";
@@ -97,7 +96,7 @@ has_LANGNAME_begin_block(std::string buf, const char *file)
 		return 0;
 	}
 }
-static int
+static i32
 has_LANGNAME_end_block(std::string buf, const char *file)
 {
 	std::string tmp = "<<" LANGNAME_STRING "_end>>";
@@ -143,7 +142,7 @@ enter_block_and_parse(const char *file)
 	size_t start = 0, end = 0;
 	std::string initbuf;
 	std::string tmp_buf;
-	int error_num;
+	i32 error_num;
 	if (strcmp(file, "stdin") != 0) {
 		fp.open(file);
 		if (!fp.is_open()) {

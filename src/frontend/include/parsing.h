@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 void
-enter_block_and_parse(char *file);
+enter_block_and_parse(const char *file);
 void
 set_LANGNAME_file(void);
 #ifdef __cplusplus

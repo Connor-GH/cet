@@ -1,10 +1,50 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+<<cet_begin>>
+struct<Class>
+Animal1
+{
+<public>:
+    int x;
+<private>:
+    int y;
+};
+struct<Class>
+Animal2
+
+{
+
+    <public>:
+        int      x;
+        int      x1;
+        int      x2;
+        int      x3;
+
+    <private>:
+
+        int y;
+};
+/* struct<Class_constructor> Animal Animal(int _x) {x = _x;}
+ * struct<Class> Animal a = new Animal(27);
+ *
+ * the above translates to:
+ * struct Animal Animal(int _x) {struct Animal a; a.x = _x; return a;}
+ * struct Animal a = Animal(27);
+ */
+
+
+struct<Class> Animal3 {
+    <private> static int *const x;
+    <private>:
+    int y;
+};
+<<cet_end>>
+
 int
 fun(void)
 {
-    <<cet_begin>>
+	<<cet_begin>>
     /* ^^ this header is not needed
      * in every translation unit (function).
      * It is used in this function specifically
@@ -13,19 +53,19 @@ fun(void)
      * file to parse, thereby leaving
      * certain portions of the file alone */
 
-    /* This helps to show that this parsing
+	/* This helps to show that this parsing
      * system does not restrict the user from
      * making identifiers with the type in
      * the name. */
-    u32 thisIsAnIdentifierForu32 = 0;
-    u32 cb;
+	u32 thisIsAnIdentifierForu32 = 0;
+	u32 cb;
 	for (u32 i = 1; i < 32; i++) {
 		cb = 1 + (u64)(u32)i;
 		cb = (u32)((f32)cb / 3); /* complicated casting */
 	}
 	/* u32 i32 i16 i8 f128 */
-    return cb;
-    <<cet_end>>
+	return cb;
+	<<cet_end>>
 }
 int
 main(void)
