@@ -4,6 +4,8 @@
 /obj/
 /tests/self-host/bin/
 /tests/self-host/obj/
+/compile_commands.json
+/.cache/**/*
 *~
 *.o
 *.bin

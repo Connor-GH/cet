@@ -90,6 +90,8 @@ static std::vector<std::string> tokenize_struct(std::string buf,
 }
 
 
+// TODO change to use has_attr
+
 size_t has_class_identifier(std::string buf, const char *file, size_t line_no) {
 /* identifier is split for the sake of bootstrapping */
 	static constexpr const char *class_identifier = "<Cla" "ss>";

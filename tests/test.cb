@@ -9,6 +9,7 @@ int main(void) {
 u32 a = (u32)273890 + 12;
 f128 b;
 f64 c;
+defer { return 0; }
 
 f128
     j;
@@ -19,7 +20,6 @@ for (u32 i = 0; i < 12; i++) {
 c = (f64)b;
 
 printf("%.10lf\n", c);
-return 0;
 }
 
 /* for loop syntax to be used in the future:

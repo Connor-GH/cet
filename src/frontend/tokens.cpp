@@ -1,21 +1,23 @@
 #include <string>
-#include <iostream>
 
 #include <cstddef>
 #include <cctype>
 #include <cstring>
 
 #include "tokens.hpp"
-/**
+
+
+/*
+ * accounts for cast, template, and bare
+ */
+static int istypetoken(unsigned char c) {
+	return isspace(c) || (c == '>') || (c == ')');
+}
+/*
  * Returns the index of the first
  * byte of the first token in the
  * string.
  */
-
-
-static int istypetoken(unsigned char c) {
-	return isspace(c) || (c == '>') || (c == ')');
-}
 static struct type_token_vals
 token_information(std::string tok)
 {

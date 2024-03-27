@@ -6,15 +6,14 @@
 #include <cerrno>
 #include <cstring>
 
-//#include "tokens.h"
 #include "tokens.hpp"
 #include "parsing.h"
 #include "parsing_error.h"
-#include "classes.hpp"
 
 static int is_in_comment = 0;
 static int in_codeblock = 0;
 static size_t line_no = 0;
+static size_t scope_depth = 0;
 
 
 static constexpr const char *begin_comment = "/" "*";
@@ -46,40 +45,71 @@ remove_portion_of_buffer_and_merge(std::string initbuf, size_t start,
 	return initbuf;
 }
 
+/* fn_ptr can only change data by affecting the global state;
+ * i.e. changing global variables or doing I/O. */
+using fn_ptr = void(*)(std::string the_buf, const char *the_file);
+static size_t
+has_attr(std::string buf, const char *file, const char *attr,
+    const char *errmsg, fn_ptr lambda)
+{
+	size_t idx_of_attr = 0;
+	if (buf.empty())
+		return std::string::npos;
+
+	idx_of_attr = buf.find(attr);
+	// check for duplicates (illegal)
+  if (buf.rfind(attr) != idx_of_attr)
+		parsing_err(ERROR, errmsg, buf.c_str(),
+					buf.rfind(attr), file, line_no);
+	if (idx_of_attr != std::string::npos) {
+    // do something in the event of a match.
+    lambda(buf, file);
+		return idx_of_attr + 1;
+	}
+	return std::string::npos;
+}
 static size_t
 has_end_comment(std::string buf, const char *file)
 {
-	size_t idx_of_end_comment = 0;
-	if (buf.empty())
-		return buf.length()+1;
-
-	idx_of_end_comment = buf.find(end_comment);
-	if (buf.rfind(end_comment) != idx_of_end_comment)
-		parsing_err(ERROR, "Nested comments are not supported.", buf.c_str(),
-					buf.rfind(end_comment), file, line_no);
-	if (idx_of_end_comment != std::string::npos) {
-		is_in_comment = 0;
-		return idx_of_end_comment + 1;
-	}
-	return buf.length()+1;
+  return has_attr(buf, file, end_comment, "Nested comments are not supported.",
+      [](std::string the_buf, const char *the_file) {
+        is_in_comment = 0;
+      });
 }
 static size_t
-has_begin_comment(std::string buf, const char *file)
-{
-	size_t idx_of_begin_comment = 0;
-	if (buf.empty())
-		return buf.length()+1;
-
-	idx_of_begin_comment = buf.find(begin_comment);
-	if (buf.rfind(begin_comment) != idx_of_begin_comment)
-		parsing_err(ERROR, "Nested comments are not supported.", buf.c_str(),
-					buf.rfind(begin_comment), file, line_no);
-	if (idx_of_begin_comment != std::string::npos) {
-		is_in_comment = 1;
-		return idx_of_begin_comment + 1;
-	}
-	return buf.length()+1;
+has_begin_comment(std::string buf, const char *file) {
+  return has_attr(buf, file, begin_comment, "Nested comments are not supported.",
+      [](std::string the_buf, const char *the_file) {
+        is_in_comment = 1;
+      });
 }
+
+static size_t
+has_defer(std::string buf, const char *file) {
+  return has_attr(buf, file, "defer", "Duplicate defer keyword where it makes no sense.",
+      [](std::string the_buf, const char *the_file) {
+      });
+}
+
+static size_t
+has_scopeend(std::string buf, const char *file) {
+  return has_attr(buf, file, "}", "This bracket makes no sense!",
+      [](std::string the_buf, const char *the_file) {
+      if (scope_depth > 0)
+        scope_depth--;
+      else
+        parsing_err(ERROR,"Bracket where it makes no sense (scope_depth = -1)",
+            the_buf.c_str(), the_buf.rfind("}"), the_file, line_no);
+      });
+}
+static size_t
+has_scopebegin(std::string buf, const char *file) {
+  return has_attr(buf, file, "{", "This bracket makes no sense!",
+      [](std::string the_buf, const char *the_file) {
+        scope_depth++;
+        });
+}
+
 
 static int
 has_LANGNAME_begin_block(std::string buf, const char *file)
@@ -143,6 +173,8 @@ enter_block_and_parse(const char *file)
 	size_t start = 0, end = 0;
 	std::string initbuf;
 	std::string tmp_buf;
+  std::string end_of_scope_buf = "";
+  size_t end_of_scope_depth = 0;
 	int error_num;
 	if (strcmp(file, "stdin") != 0) {
 		fp.open(file);
@@ -154,7 +186,7 @@ enter_block_and_parse(const char *file)
 		}
 	}
 	while (std::getline((strcmp(file, "stdin") == 0) ? std::cin : fp, initbuf)) {
-		line_no++;
+    line_no++;
 		if (has_LANGNAME_end_block(initbuf, file) == 1) {
 			in_codeblock = 0;
 			continue;
@@ -170,33 +202,39 @@ enter_block_and_parse(const char *file)
 			/* check for classes */
 
 			// should only be used for debug, is being worked on
-			/*if ((has_class_identifier(initbuf, file, line_no) < initbuf.length()) && !is_in_comment) {
+			/*if ((has_class_identifier(initbuf, file, line_no) != std::string::npos) && !is_in_comment) {
 				std::cout << "Class found!\n";
 				locate_class_name(initbuf, fp, file, line_no);
 				continue;
 			}*/
 
+      if (is_in_comment) {
+        continue;
+      }
 			/* parse comments */
-			if (start < initbuf.length() && end < initbuf.length()) {
+			if (start != std::string::npos && end != std::string::npos) {
 				initbuf =
 					remove_portion_of_buffer_and_merge(initbuf, start, end);
-			} else if (start < initbuf.length() && !(end < initbuf.length())) {
+			} else if (start != std::string::npos && end == std::string::npos) {
 				initbuf = remove_portion_of_buffer_and_merge(
 					initbuf, start, initbuf.length() - 1);
-			} else if (!(start < initbuf.length()) && end < initbuf.length()) {
+			} else if (start == std::string::npos && end == std::string::npos) {
 				initbuf = remove_portion_of_buffer_and_merge(initbuf, 0,
 						end);
-		   } else if (is_in_comment) {
-				initbuf = remove_portion_of_buffer_and_merge(
-				initbuf, 0, initbuf.length() - 1);
-			} else if (!(start < initbuf.length()) && !(end < initbuf.length())) {
-					if (!has_LANGNAME_begin_block(initbuf, file) &&
-							!has_LANGNAME_type(initbuf)) {
-						std::cout << initbuf << std::endl;
-						continue;
-					}
-			}
-
+		   }
+      // If we have a defer, move it into a special buffer and hold it for later
+      if (has_defer(initbuf, file) != std::string::npos) {
+        end_of_scope_buf = initbuf.substr(initbuf.rfind("defer") + strlen("defer"), initbuf.length());
+        end_of_scope_depth = scope_depth;
+        continue;
+      }
+      if (has_scopebegin(initbuf, file) != std::string::npos) { }
+      if (has_scopeend(initbuf, file) != std::string::npos) {
+        if ((end_of_scope_depth == (scope_depth + 1)) && (has_defer(initbuf, file) == std::string::npos)) {
+				  // Deploy special buffer if needed. Fall through because of the end bracket.
+          std::cout << end_of_scope_buf << std::endl;
+        }
+      }
 			/* parse type info */
 			if (has_LANGNAME_type(initbuf) && !is_in_comment) {
 				/* While loop to change types.
@@ -213,9 +251,16 @@ enter_block_and_parse(const char *file)
 				continue;
 			}
 		}
+    //if (end_of_scope_depth == scope_depth) {
+		//	std::cout << end_of_scope_buf << std::endl;
+    //}
 		if (!in_codeblock && has_LANGNAME_begin_block(initbuf, file) != 1) {
 			std::cout << initbuf << std::endl;
-		}
+      continue;
+		} else if (start == std::string::npos && end == std::string::npos) {
+			std::cout << initbuf << std::endl;
+      continue;
+    }
 	}
 	if (strcmp(file, "stdin") != 0) {
 		fp.close();

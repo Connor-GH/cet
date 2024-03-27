@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <inttypes.h>
 
 <<cet_begin>>
 struct<Class>
