@@ -230,9 +230,10 @@ enter_block_and_parse(const char *file)
       }
       if (has_scopebegin(initbuf, file) != std::string::npos) { }
       if (has_scopeend(initbuf, file) != std::string::npos) {
-        if ((end_of_scope_depth == (scope_depth + 1)) && (has_defer(initbuf, file) == std::string::npos)) {
+        if ((end_of_scope_buf != "") && (end_of_scope_depth == (scope_depth + 1)) && (has_defer(initbuf, file) == std::string::npos)) {
 				  // Deploy special buffer if needed. Fall through because of the end bracket.
           std::cout << end_of_scope_buf << std::endl;
+          end_of_scope_buf = "";
         }
       }
 			/* parse type info */

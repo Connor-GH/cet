@@ -1,0 +1,14 @@
+#include <stdlib.h>
+#include <stdio.h>
+
+void func(void) {
+  void *ptr = malloc(sizeof("hello, world")+1);
+  defer free(ptr);
+  strcpy(ptr, "hello, world");
+  printf("%s\n", ptr);
+  /* defer gets placed here */
+}
+i32 main(void) {
+  func();
+  return 0;
+}
